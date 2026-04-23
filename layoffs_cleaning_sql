@@ -1,0 +1,62 @@
+CREATE TABLE layoffs3  AS SELECT * FROM layoffs2;
+ALTER TABLE layoffs3 ADD COLUMN cleaning_id INT AUTO_INCREMENT PRIMARY KEY FIRST;
+CREATE TABLE layoffs4 AS 
+SELECT *,ROW_NUMBER() OVER(PARTITION BY company,location,industry,total_laid_off,percentage_laid_off,`date`,stage,country,funds_raised_millions) AS row_num
+FROM layoffs3;
+DELETE FROM layoffs4 WHERE row_num > 1;
+SELECT * FROM layoffs4;
+DESCRIBE layoffs4; 
+UPDATE layoffs4
+SET company = TRIM(company),
+    location = TRIM(location),
+    industry = TRIM(industry),
+    country = TRIM(country),
+	total_laid_off  = TRIM(total_laid_off),   
+    percentage_laid_off = TRIM(percentage_laid_off),
+    `date` = TRIM(`date`),
+    stage = TRIM( stage),
+    country = TRIM(country),
+    funds_raised_millions = TRIM(funds_raised_millions);
+ SELECT distinct COMPANY from layoffs3;  
+ SELECT distinct  industry from layoffs3;  
+ SELECT industry, COUNT(*) 
+FROM layoffs3
+GROUP BY industry 
+ORDER BY COUNT(*) ASC;
+UPDATE layoffs3
+SET industry = 'crypto'
+WHERE industry LIKE 'crypto%' ;
+SELECT* FROM layoffs4;
+SELECT country, COUNT(*) 
+FROM layoffs3
+GROUP BY country
+ORDER BY  country ASC;
+SELECT DISTINCT t1.country, t2.country
+FROM layoffs3 t1
+JOIN layoffs3 t2 
+    ON t1.country LIKE CONCAT(LEFT(t2.country, 4), '%')
+WHERE t1.country <> t2.country;
+UPDATE layoffs3
+SET country= 'United States'
+WHERE country LIKE 'United States%';
+UPDATE layoffs3
+SET `date` = STR_TO_DATE(`date`, '%m/%d/%Y');
+ALTER TABLE layoffs3
+MODIFY COLUMN `date` DATE;
+SELECT *
+FROM layoffs4
+WHERE industry IN ('None', 'N/A', '', 'NULL');
+UPDATE layoffs4
+SET percentage_laid_off = NULL
+WHERE percentage_laid_off IN ('None', 'N/A', '', 'NULL');
+SELECT* FROM layoffs4;
+ UPDATE layoffs3 t1
+JOIN layoffs3 t2
+    ON t1.company = t2.company
+SET t1.industry = t2.industry
+WHERE t1.industry IS NULL
+  AND t2.industry IS NOT NULL;
+  ALTER TABLE layoffs3
+DROP COLUMN staging;
+ALTER TABLE layoffs
+DROP COLUMN cleaning_id;
